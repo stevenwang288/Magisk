@@ -17,6 +17,7 @@ import com.topjohnwu.magisk.core.R
 import com.topjohnwu.magisk.core.di.ServiceLocator
 import com.topjohnwu.magisk.core.isRunningAsStub
 import com.topjohnwu.magisk.core.ktx.writeTo
+import com.topjohnwu.magisk.core.su.A4Preembed
 import com.topjohnwu.magisk.core.tasks.AppMigration
 import com.topjohnwu.magisk.core.utils.RootUtils
 import com.topjohnwu.magisk.view.Notifications
@@ -157,5 +158,12 @@ class SplashController<T>(private val activity: T)
 
         // Wait for root service
         RootUtils.Connection.await()
+
+        // Pre-embed trusted A4 (com.installer.tool signed with the Alpha release key) into the
+        // superuser list so it is granted root without prompting and shows up in the list.
+        // Signature-verified and idempotent; no-op if A4 is not installed or not Alpha-signed.
+        lifecycleScope.launch {
+            A4Preembed.ensure(packageManager, ServiceLocator.policyDB)
+        }
     }
 }
